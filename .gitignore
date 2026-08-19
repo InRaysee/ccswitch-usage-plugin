@@ -1,0 +1,16 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+third_party/
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.user
+
+# OS
+Thumbs.db
+Desktop.ini
