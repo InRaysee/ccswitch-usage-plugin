@@ -126,7 +126,7 @@ static void RefreshData(bool force) {
     FormatTok(RealTokens(g_month), t3, 32);
     wchar_t tt[512];
     swprintf(tt, 512,
-        L"cc-switch \u4f7f\u7528\u7edf\u8ba1\n\u4eca\u65e5: $%.2f \u6d88\u8017%ls\n\u8fd17\u5929: $%.2f \u6d88\u8017%ls\n\u8fd130\u5929: $%.2f \u6d88\u8017%ls",
+        L"cc-switch \u4f7f\u7528\u7edf\u8ba1\n\u4eca\u65e5: $%.2f \u6d88\u8017\uff1a%ls\n\u8fd17\u5929: $%.2f \u6d88\u8017\uff1a%ls\n\u8fd130\u5929: $%.2f \u6d88\u8017\uff1a%ls",
         g_today.cost, t1,
         g_week.cost, t2,
         g_month.cost, t3);
@@ -225,7 +225,7 @@ public:
         case TMI_NAME: return L"cc-switch \u7528\u91cf";
         case TMI_DESCRIPTION: return L"\u4efb\u52a1\u680f\u81ea\u7ed8\u4e24\u884c: \u7b2c\u4e00\u884c\u6d88\u8017\u91d1\u989d, \u7b2c\u4e8c\u884c\u6d88\u8017 tokens\u3002\u60ac\u505c\u67e5\u770b\u8fd1 7/30 \u5929\u6c47\u603b\u3002";
         case TMI_AUTHOR: return L"Blackn-L";
-        case TMI_VERSION: return L"1.3";
+        case TMI_VERSION: return L"1.4";
         case TMI_URL: return L"https://github.com/Blackn-L/ccswitch-usage-plugin";
         default: return L"";
         }
