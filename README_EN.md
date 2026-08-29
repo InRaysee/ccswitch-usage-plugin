@@ -45,13 +45,17 @@ The script downloads the SQLite amalgamation automatically and outputs `bin/CCSw
 
 ## How it works
 
-The plugin opens cc-switch's local database `%USERPROFILE%\.cc-switch\cc-switch.db` in **read-only** mode:
+The plugin opens cc-switch's local database in **read-only** mode, resolving the path the same way cc-switch does:
 
-- Aggregates the `proxy_request_logs` table from today's midnight / 7 days ago / 30 days ago (local timezone)
+- First honors cc-switch's custom data directory (`%APPDATA%\com.ccswitch.desktop\app_paths.json`)
+- Then falls back to `<user profile>\.cc-switch\cc-switch.db` (reads the system profile directory and opens it as UTF-8, so non-ASCII usernames work)
+- If the default path is missing, it also supports the v3.10.3 legacy database under `%HOME%\.cc-switch`
+- Aggregates both `proxy_request_logs` details and `usage_daily_rollups` from today's midnight / 7 days ago / 30 days ago (local timezone)
 - Real consumed tokens = fresh input + output + cache creation + cache read
 - Normalizes cache-inclusive `input_tokens` for Codex / Gemini / GrokBuild to avoid double-counting cache
 - Cost comes from cc-switch's `total_cost_usd` (identical to its internal pricing)
 - SQLite is opened read-only with a 3-second busy timeout, so it never interferes with cc-switch
+- Databases missing the `input_token_semantics` column (older schema) are supported; hover text reports the reason and actual database path when the database can't be opened, the log table is missing, or the last 30 days are empty; transient query failures keep the last successful values
 
 No background daemon, no data upload, no modification of cc-switch files.
 

@@ -45,13 +45,17 @@ build.bat
 
 ## 工作原理
 
-插件以**只读**方式打开 cc-switch 的本地数据库 `%USERPROFILE%\.cc-switch\cc-switch.db`：
+插件以**只读**方式打开 cc-switch 的本地数据库，路径解析顺序与 cc-switch 一致：
 
-- 按本地时区取今日零点 / 7 天前 / 30 天前零点为界聚合 `proxy_request_logs` 表
+- 优先使用 cc-switch 设置中的自定义数据目录（`%APPDATA%\com.ccswitch.desktop\app_paths.json`）
+- 其次使用 `<用户目录>\.cc-switch\cc-switch.db`（读取系统 Profile 目录并以 UTF-8 打开，支持中文用户名）
+- 默认路径不存在时，兼容 cc-switch v3.10.3 在 `%HOME%\.cc-switch` 留下的数据库
+- 按本地时区取今日零点 / 7 天前 / 30 天前零点为界，同时聚合 `proxy_request_logs` 明细和 `usage_daily_rollups` 日汇总
 - 真实消耗 tokens = 新输入 + 输出 + 缓存创建 + 缓存读取
 - 对 Codex / Gemini / GrokBuild 的 `input_tokens` 先做缓存归一化，避免缓存被重复计算
 - 金额使用 cc-switch 记录的 `total_cost_usd`（与其内部计价一致）
 - SQLite 只读打开 + 3 秒忙等待，与 cc-switch 的写入互不干扰
+- 旧版本数据库缺少 `input_token_semantics` 列时自动降级；数据库打不开、缺少日志表或近 30 天无记录时，悬停提示会显示原因和实际读取的数据库路径；查询瞬时失败会保留上一次成功数据
 
 不后台常驻、不上传任何数据、不修改 cc-switch 的任何文件。
 

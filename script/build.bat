@@ -57,7 +57,7 @@ if errorlevel 1 (
 
 echo [INFO] Linking CCSwitchUsage.dll...
 if not exist "%ROOT%\bin" mkdir "%ROOT%\bin"
-g++ -shared -static -O2 -I"%SQLITE_DIR%" -o "%ROOT%\bin\CCSwitchUsage.dll" "%ROOT%\src\CCSwitchUsage.cpp" "%SQLITE_DIR%\sqlite3.o" -lgdi32
+g++ -shared -static -O2 -I"%SQLITE_DIR%" -o "%ROOT%\bin\CCSwitchUsage.dll" "%ROOT%\src\CCSwitchUsage.cpp" "%SQLITE_DIR%\sqlite3.o" -lgdi32 -lshell32
 if errorlevel 1 (
     echo [ERROR] Link failed.
     exit /b 1
