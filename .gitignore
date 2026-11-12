@@ -14,3 +14,6 @@ dist/
 # OS
 Thumbs.db
 Desktop.ini
+
+# Local balance extension outputs
+/bin/CCSwitchUsageBalance.dll

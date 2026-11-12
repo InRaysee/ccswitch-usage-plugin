@@ -1,3 +1,4 @@
+// Local extension: provider name and remaining balance via the configured usage script.
 // CCSwitchUsage - TrafficMonitor 插件
 // 任务栏自绘两行: 第一行消耗金额, 第二行消耗 tokens; 悬停显示近 7/30 天汇总
 // 数据来源: cc-switch 本地数据库 (只读), 路径解析与 cc-switch 保持一致
@@ -5,6 +6,7 @@
 #define _WIN32_WINNT 0x0601
 #endif
 #include "PluginInterface.h"
+#include "ProviderBalance.h"
 #include <windows.h>
 #include <shlobj.h>
 #include <stdlib.h>
@@ -403,8 +405,8 @@ static void RefreshData(bool force) {
 // ---------------- 显示项目(自绘) ----------------
 class CCSwitchUsageItem : public IPluginItem {
 public:
-    virtual const wchar_t* GetItemName() const { return L"CC\u7528\u91cf"; }
-    virtual const wchar_t* GetItemId() const { return L"ccswitch_usage"; }
+    virtual const wchar_t* GetItemName() const { return L"CC\u7528\u91cf(\u4f59\u989d\u7248)"; }
+    virtual const wchar_t* GetItemId() const { return L"ccswitch_balance_usage"; }
     virtual const wchar_t* GetItemLableText() const { return L""; }
     virtual const wchar_t* GetItemValueText() const { return g_line2.c_str(); }
     virtual const wchar_t* GetItemValueSampleText() const { return L"\u6d88\u8017 999.9M"; }
@@ -484,20 +486,25 @@ public:
 
     virtual IPluginItem* GetItem(int index) {
         if (index == 0) return &m_item;
+        if (index == 1) return balance::Item();
         return nullptr;
     }
-    virtual void DataRequired() { RefreshData(false); }
+    virtual void DataRequired() { RefreshData(false); balance::Refresh(ResolveDbPath().utf8); }
+    virtual OptionReturn ShowOptionsDialog(void* parent) { return balance::ShowOptions(parent); }
     virtual const wchar_t* GetInfo(PluginInfoIndex index) {
         switch (index) {
-        case TMI_NAME: return L"cc-switch \u7528\u91cf";
-        case TMI_DESCRIPTION: return L"\u4efb\u52a1\u680f\u81ea\u7ed8\u4e24\u884c: \u7b2c\u4e00\u884c\u6d88\u8017\u91d1\u989d, \u7b2c\u4e8c\u884c\u6d88\u8017 tokens\u3002\u60ac\u505c\u67e5\u770b\u8fd1 7/30 \u5929\u6c47\u603b\u3002";
-        case TMI_AUTHOR: return L"Blackn-L";
-        case TMI_VERSION: return L"1.5";
+        case TMI_NAME: return L"cc-switch \u7528\u91cf\u4e0e\u4f59\u989d";
+        case TMI_DESCRIPTION: return L"CC\u4f59\u989d: \u4f9b\u5e94\u5546\u540d\u79f0 / \u5269\u4f59\u4f59\u989d. CC\u7528\u91cf: \u91d1\u989d / Tokens.";
+        case TMI_AUTHOR: return L"Blackn-L; local balance extension";
+        case TMI_VERSION: return L"2.0-balance";
         case TMI_URL: return L"https://github.com/Blackn-L/ccswitch-usage-plugin";
         default: return L"";
         }
     }
-    virtual const wchar_t* GetTooltipInfo() { RefreshData(false); return g_tooltipText.c_str(); }
+    virtual const wchar_t* GetTooltipInfo() {
+        RefreshData(false); balance::Refresh(ResolveDbPath().utf8);
+        static std::wstring combined; combined = g_tooltipText + balance::Tooltip(); return combined.c_str();
+    }
 
 private:
     CCSwitchUsageItem m_item;

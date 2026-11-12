@@ -1,69 +1,18 @@
 [English](README_EN.md) | **中文**
 
-# CCSwitch Usage · TrafficMonitor 任务栏插件
+# CCSwitch Usage Balance · TrafficMonitor 供应商余额版
 
-在 Windows 任务栏上实时显示 [cc-switch](https://github.com/farion1231/cc-switch) 的用量统计。第一行是今日消耗金额，第二行是今日消耗 tokens，鼠标悬停可查看近 7 天 / 30 天汇总。
+基于 [Blackn-L/ccswitch-usage-plugin](https://github.com/Blackn-L/ccswitch-usage-plugin) 修改。
 
-![screenshot](docs/screenshot.png)
+- **CC余额**：上行供应商名称，下行剩余余额，默认跟随 cc-switch 当前 Codex 供应商。
+- **CC用量(余额版)**：保留上游的今日花费、Token 和近 7/30 天悬停汇总。
+- 余额后台查询每 60 秒一次；复用 cc-switch 已配置的 JavaScript `request` / `extractor` 用量脚本。
+- 支持系统/手动代理、固定供应商、多套餐选择、错误提示和上次成功更新时间。
 
-## 显示内容
+安装：先按下方命令构建，再把生成的 `bin/CCSwitchUsageBalance.dll` 和同名 INI 放入 TrafficMonitor 的 `plugins`，重启并勾选 **CC余额**。增强版 DLL 是构建产物，不随源码提交。
 
-| 位置 | 内容 | 示例 |
-|---|---|---|
-| 第一行 | 今日消耗金额 | `$60.69` |
-| 第二行 | 今日真实消耗 tokens（与 cc-switch 口径一致） | `175.6M` |
-| 鼠标悬停 | 今日 / 近 7 天 / 近 30 天汇总 | — |
+构建：`powershell -NoProfile -ExecutionPolicy Bypass -File .\script\build-balance.ps1`，或运行 `script\build.bat`。
 
-数据每 5 秒自动刷新。
+**完整安装、支持范围、配置、构建和验证见 [README_BALANCE.md](README_BALANCE.md)。** 本版本支持配置了查询脚本的供应商余额；原生官方订阅模板不在支持范围。
 
-## 环境要求
-
-- Windows 10 / 11
-- [TrafficMonitor](https://github.com/zhongyang219/TrafficMonitor) V1.86 及以上
-- 已安装并使用 [cc-switch](https://github.com/farion1231/cc-switch)
-
-## 安装
-
-1. 下载 [bin/CCSwitchUsage.dll](bin/CCSwitchUsage.dll)
-2. 复制到 TrafficMonitor 的 `plugins` 目录，例如：
-   ```
-   C:\Program Files\TrafficMonitor\plugins\CCSwitchUsage.dll
-   ```
-3. 重启 TrafficMonitor
-4. 在任务栏的 TrafficMonitor 上右键 → 显示设置，勾选 **CC用量**
-
-## 从源码构建
-
-依赖 MinGW-w64（`g++`）和 curl：
-
-```bat
-cd script
-build.bat
-```
-
-脚本会自动下载 SQLite amalgamation 并编译，产物输出到 `bin/CCSwitchUsage.dll`。
-
-## 工作原理
-
-插件以**只读**方式打开 cc-switch 的本地数据库，路径解析顺序与 cc-switch 一致：
-
-- 优先使用 cc-switch 设置中的自定义数据目录（`%APPDATA%\com.ccswitch.desktop\app_paths.json`）
-- 其次使用 `<用户目录>\.cc-switch\cc-switch.db`（读取系统 Profile 目录并以 UTF-8 打开，支持中文用户名）
-- 默认路径不存在时，兼容 cc-switch v3.10.3 在 `%HOME%\.cc-switch` 留下的数据库
-- 按本地时区取今日零点 / 7 天前 / 30 天前零点为界，同时聚合 `proxy_request_logs` 明细和 `usage_daily_rollups` 日汇总
-- 真实消耗 tokens = 新输入 + 输出 + 缓存创建 + 缓存读取
-- 对 Codex / Gemini / GrokBuild 的 `input_tokens` 先做缓存归一化，避免缓存被重复计算
-- 金额使用 cc-switch 记录的 `total_cost_usd`（与其内部计价一致）
-- SQLite 只读打开 + 3 秒忙等待，与 cc-switch 的写入互不干扰
-- 旧版本数据库缺少 `input_token_semantics` 列时自动降级；数据库打不开、缺少日志表或近 30 天无记录时，悬停提示会显示原因和实际读取的数据库路径；查询瞬时失败会保留上一次成功数据
-
-不后台常驻、不上传任何数据、不修改 cc-switch 的任何文件。
-
-## 致谢
-
-- [TrafficMonitor](https://github.com/zhongyang219/TrafficMonitor)（zhongyang219）—— 任务栏监控框架
-- [cc-switch](https://github.com/farion1231/cc-switch) —— Claude Code / Codex 供应商切换与用量统计
-
-## 许可证
-
-采用与 TrafficMonitor 相同的 [Anti 996 License](LICENSE)。`src/PluginInterface.h` 版权归 zhongyang219 所有。
+原插件与接口许可证见 [LICENSE](LICENSE)。QuickJS-ng 许可证见 [LICENSE.quickjs.txt](LICENSE.quickjs.txt)。
