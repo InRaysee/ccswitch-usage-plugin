@@ -194,6 +194,25 @@ bool Http(const Request& req, const Provider& provider, const Config& config,
 }
 } // namespace
 
+bool ListProviders(sqlite3* db, std::vector<ProviderChoice>& choices, std::wstring& error) {
+    choices.clear();
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql = "SELECT id,app_type,name,CASE WHEN json_valid(meta) THEN "
+        "COALESCE(json_extract(meta,'$.usage_script.enabled'),0) ELSE 0 END,"
+        "CASE WHEN json_valid(meta) THEN length(COALESCE(json_extract(meta,'$.usage_script.code'),'')) ELSE 0 END "
+        "FROM providers ORDER BY app_type,name COLLATE NOCASE,id";
+    if (sqlite3_prepare_v2(db,sql,-1,&stmt,nullptr) != SQLITE_OK) {
+        error = L"Cannot list cc-switch providers"; return false;
+    }
+    int result = SQLITE_OK;
+    while ((result = sqlite3_step(stmt)) == SQLITE_ROW)
+        choices.push_back({Text(stmt,0),Text(stmt,1),Text(stmt,2),sqlite3_column_int(stmt,3) != 0,sqlite3_column_int(stmt,4) > 0});
+    sqlite3_finalize(stmt);
+    if (result != SQLITE_DONE) { error = L"Cannot finish reading provider list"; choices.clear(); return false; }
+    error.clear();
+    return true;
+}
+
 bool LoadProvider(sqlite3* db, const Config& config, const std::string& settingsJson,
                   Provider& p, std::wstring& error) {
     p = {};
@@ -201,7 +220,14 @@ bool LoadProvider(sqlite3* db, const Config& config, const std::string& settings
     if (id.empty()) {
         std::string key = config.app == "codex" ? "currentProviderCodex" :
             config.app == "claude" ? "currentProviderClaude" :
-            config.app == "gemini" ? "currentProviderGemini" : "";
+            config.app == "gemini" ? "currentProviderGemini" :
+            config.app == "grokbuild" ? "currentProviderGrokbuild" :
+            config.app == "claude_desktop" ? "currentProviderClaudeDesktop" :
+            config.app == "opencode" ? "currentProviderOpencode" :
+            config.app == "openclaw" ? "currentProviderOpenclaw" :
+            config.app == "hermes" ? "currentProviderHermes" :
+            config.app == "agy" ? "currentProviderAgy" :
+            config.app == "copilot" ? "currentProviderCopilot" : "";
         sqlite3_stmt* settings = nullptr;
         if (!key.empty() && !settingsJson.empty() && sqlite3_prepare_v2(db,
             "SELECT json_extract(?1,?2) WHERE json_valid(?1)", -1, &settings, nullptr) == SQLITE_OK) {
@@ -324,11 +350,21 @@ bool ExtractValue(const Provider& p, const std::string& response, unsigned planI
     if (!ok) error = L"Account/plan unavailable, or plan_index is out of range";
     JS_FreeValue(js.ctx, valid);
     Value value;
+    value.hasUsed = Number(js.ctx, plan, "used", value.used);
+    value.hasTotal = Number(js.ctx, plan, "total", value.total);
     if (ok && !Number(js.ctx, plan, "remaining", value.remaining)) {
         double total = 0, used = 0;
         ok = Number(js.ctx, plan, "total", total) && Number(js.ctx, plan, "used", used);
         if (ok) { value.remaining = total - used; ok = std::isfinite(value.remaining); }
         if (!ok) error = L"Usage result has no numeric remaining balance";
+    }
+    if (ok && value.hasTotal && !value.hasUsed) {
+        value.used = value.total - value.remaining;
+        value.hasUsed = std::isfinite(value.used);
+    }
+    if (ok && value.hasUsed && !value.hasTotal) {
+        value.total = value.used + value.remaining;
+        value.hasTotal = std::isfinite(value.total);
     }
     value.unit = String(js.ctx, plan, "unit");
     value.plan = String(js.ctx, plan, "planName");

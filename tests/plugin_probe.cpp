@@ -3,12 +3,14 @@
 #include <iostream>
 #include <string>
 int main(int argc,char** argv) {
-    if(argc!=2) { std::cerr << "Usage: plugin_probe <dll>\n"; return 1; }
+    if(argc!=2 && argc!=3) { std::cerr << "Usage: plugin_probe <dll>\n"; return 1; }
     HMODULE dll=LoadLibraryA(argv[1]);
     if(!dll) { std::cerr << "LoadLibrary failed: " << GetLastError() << '\n'; return 1; }
     auto get=(ITMPlugin*(*)())GetProcAddress(dll,"TMPluginGetInstance");
     if(!get) return 2;
-    auto* plugin=get(); auto* item=plugin->GetItem(1);
+    auto* plugin=get();
+    if (argc == 3 && std::string(argv[2]) == "--options") return plugin->ShowOptionsDialog(nullptr) == ITMPlugin::OR_OPTION_NOT_PROVIDED ? 5 : 0;
+    auto* item=plugin->GetItem(1);
     if(!item || plugin->GetItem(2)) return 3;
     std::wstring text;
     for(int i=0;i<45;++i) {

@@ -490,20 +490,21 @@ public:
         return nullptr;
     }
     virtual void DataRequired() { RefreshData(false); balance::Refresh(ResolveDbPath().utf8); }
-    virtual OptionReturn ShowOptionsDialog(void* parent) { return balance::ShowOptions(parent); }
+    virtual OptionReturn ShowOptionsDialog(void* parent) { return balance::ShowOptions(parent, ResolveDbPath().utf8); }
     virtual const wchar_t* GetInfo(PluginInfoIndex index) {
         switch (index) {
         case TMI_NAME: return L"cc-switch \u7528\u91cf\u4e0e\u4f59\u989d";
         case TMI_DESCRIPTION: return L"CC\u4f59\u989d: \u4f9b\u5e94\u5546\u540d\u79f0 / \u5269\u4f59\u4f59\u989d. CC\u7528\u91cf: \u91d1\u989d / Tokens.";
         case TMI_AUTHOR: return L"Blackn-L; local balance extension";
-        case TMI_VERSION: return L"2.0-balance";
+        case TMI_VERSION: return L"2.1-balance";
         case TMI_URL: return L"https://github.com/Blackn-L/ccswitch-usage-plugin";
         default: return L"";
         }
     }
     virtual const wchar_t* GetTooltipInfo() {
         RefreshData(false); balance::Refresh(ResolveDbPath().utf8);
-        static std::wstring combined; combined = g_tooltipText + balance::Tooltip(); return combined.c_str();
+        static std::wstring combined; combined = balance::GetDisplayConfig().tooltipUsage ? g_tooltipText + L"\n\n" : L"";
+        combined += balance::Tooltip(); return combined.c_str();
     }
 
 private:

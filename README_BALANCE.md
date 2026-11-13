@@ -1,13 +1,13 @@
-# cc-switch 供应商余额版 TrafficMonitor 插件
+# cc-switch 供应商余额版 TrafficMonitor 插件（2.1-balance）
 
 基于 Blackn-L/ccswitch-usage-plugin（上游提交 7770bf69cb2ffdbf751fa6036cd64ee46c5be255）修改。余额功能分支为 `codex/provider-balance`。
 
-新增 **CC余额** 显示项：第一行显示供应商名称，第二行显示剩余余额。默认跟随 cc-switch 当前启用的 **Codex** 供应商。原有金额/Token 项保留为 **CC用量(余额版)**，可按需勾选。
+新增 **CC余额** 显示项：默认第一行显示供应商名称，第二行显示剩余余额；2.1 版可通过图形设置自定义两行内容或使用单行模式。默认跟随 cc-switch 当前启用的 **Codex** 供应商。原有金额/Token 项保留为 **CC用量(余额版)**，可按需勾选；它沿用上游聚合范围，不按余额监控对象筛选。
 
 ## 安装
 
 1. 按下方“构建与验证”生成 `bin/CCSwitchUsageBalance.dll`，再将其和 `bin/CCSwitchUsageBalance.ini` 放到 TrafficMonitor 的 `plugins` 目录。增强版 DLL 不随源码提交。
-2. 退出后重新启动 TrafficMonitor。
+2. 退出后重新启动 TrafficMonitor。升级时备份并替换 DLL，保留原有 INI；缺失的新配置使用默认值。
 3. 在任务栏显示设置中勾选 **CC余额**。本插件使用独立项目 ID，可以与原 CCSwitchUsage.dll 及 CodexUsage.dll 共存。
 4. 首次查询通常需要几秒。任务栏上方显示供应商名，下方显示如 `$123.45` 的余额；悬停显示完整名称、套餐、最后成功更新时间和错误。
 
@@ -26,7 +26,16 @@
 
 ## 配置
 
-从插件管理打开本插件“选项”会打开同目录 INI。配置保存后约 2 秒内重新读取。
+在 TrafficMonitor 的“插件管理”中选中“cc-switch 用量与余额”，点击“选项”即可打开原生设置窗口：
+
+- **数据源与刷新**：选择 Codex、Claude Code、Gemini 等应用；从数据库列出的供应商中固定选择，或跟随该应用当前供应商。可设置刷新间隔、套餐索引、系统/直连/手动 HTTP 代理。
+- **任务栏显示**：独立选择两行内容（供应商、应用与供应商、余额、已用、总额、剩余百分比、套餐、组合字段）；将一行设为“不显示”可用单行模式。可设置快捷布局、名称别名、宽度、对齐、小数位数、单位和字段名称。
+- **悬停信息与提醒**：控制花费/Token 统计、完整余额详情、更新时间及错误说明；可启用低余额变色提醒。
+- 底部预览和任务栏使用相同绘制逻辑。当前监控对象的数据可用时使用真实数据，其他选择显示明确标注的示例数据，不会在保存前查询其他供应商。
+- “应用”保存并生效；“确定”保存并关闭；“取消”放弃本次未应用的修改。已点击“应用”的设置会保留。“恢复默认”只更改窗口草稿，保存后生效。
+- 不修改 cc-switch 的当前供应商或数据库。未启用查询、无脚本及已删除的供应商会明确标记，不会悄悄换成其他账户。仅监控配置了兼容 request/extractor 脚本的供应商。
+
+配置仍保存在插件同目录 INI；窗口也提供“打开 INI”入口。手动保存后约 2 秒内重新读取。旧 INI 自动兼容缺省值。
 
 ```ini
 [Balance]
@@ -37,6 +46,19 @@ proxy_mode=system
 proxy_server=
 width=150
 plan_index=0
+line1=provider
+line2=remaining
+decimals=2
+alignment=0
+display_name=
+show_unit=1
+show_labels=0
+warn_enabled=0
+warn_below=10
+tooltip_usage=1
+tooltip_details=1
+tooltip_time=1
+tooltip_errors=1
 ```
 
 - `app_type`：默认 `codex`。也可选择 `claude`、`gemini` 等有兼容脚本的应用。
@@ -44,14 +66,33 @@ plan_index=0
 - `refresh_seconds`：余额查询间隔，15 到 3600 秒；默认 60 秒。独立于 cc-switch 卡片的查询间隔。
 - `proxy_mode`：`system`（默认）使用 Windows 当前用户系统代理；`direct` 直连；`manual` 使用 `proxy_server` 指定的 HTTP 代理。
 - `proxy_server`：例如 `127.0.0.1:7890`。只有 manual 模式使用，不支持 SOCKS 端点。
-- `width`：任务栏显示宽度，按 96 DPI 配置，范围 80 到 400。长名称会省略，悬停可看完整名称。
+- `width`：任务栏显示宽度，按 96 DPI 配置，范围 80 到 600。长名称会省略，悬停可看完整名称。
 - `plan_index`：提取器返回数组时选择的套餐，从 0 开始。不把不同货币的多套餐余额强行相加。
+- `line1` / `line2`：`none`、`provider`、`app_provider`、`remaining`、`used`、`total`、`percent`、`plan`、`used_total`、`balance_percent`。至少一行需显示内容。
+- `decimals`：0 到 6；`alignment`：0 左对齐、1 居中、2 右对齐；`display_name`：可选供应商显示别名。
+- `show_unit`、`show_labels`：是否显示单位或字段名；`warn_enabled` / `warn_below`：低余额变色开关和阈值。
+- `tooltip_usage`、`tooltip_details`、`tooltip_time`、`tooltip_errors`：分别控制悬停信息的内容，1 启用、0 关闭。
+
+已用或总额仅在接口返回数值，或可由余额和另一数值计算时提供；缺失字段显示 `--`。总额大于 0 时才计算剩余百分比。不把多套餐、不同货币余额相加。
 
 如果提示 `Enable usage query`，请在 cc-switch 对应供应商卡片启用并测试用量查询。如果提示 `HTTP 401/403`，检查查询专用凭据及供应商权限。如果提示 WinHTTP 错误，检查该电脑的代理，不能假定另一台电脑也使用 7890 端口。
 
+## 常见问题
+
+| 问题 | 处理方式 |
+| --- | --- |
+| “选项”仍打开 INI，或看不到新设置窗口 | 确认替换的是 `CCSwitchUsageBalance.dll`，完全退出 TrafficMonitor 后再重开；插件版本应为 `2.1-balance` |
+| 新增供应商未出现在列表 | 点击“重新读取列表”，并检查所选应用类型与 cc-switch 数据目录 |
+| 提示 `Enable usage query` 或无兼容脚本 | 在 cc-switch 中为该供应商启用、测试兼容 `request` / `extractor` 查询；官方订阅内置模板不适用 |
+| `HTTP 401/403` | 检查供应商查询凭据及接口权限 |
+| WinHTTP 错误 | 检查本机系统代理或在设置中指定正确的 HTTP 代理；端口取决于本机配置 |
+| 已用、总额或百分比显示 `--` | 查询结果缺少相应数值，或总额不大于 0；更改显示字段不会额外产生接口未提供的数据 |
+| 显示 `*` | 当前供应商的最新查询失败，保留的是上一次成功数据；悬停查看错误与更新时间 |
+| 保存失败 | 确认 INI 未设为只读且插件目录可写；保存失败不会替换原配置 |
+
 ## 构建与验证
 
-需要 Windows MinGW-w64（GCC/G++）、CMake、Ninja，测试还需要 Python 3。运行：
+需要 Windows MinGW-w64（GCC/G++、windres）、CMake 3.21+、Ninja；Python 3 用于 HTTP 测试。未安装 Python 时运行其余三项测试。运行：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\script\build-balance.ps1
@@ -64,7 +105,7 @@ ctest --test-dir build --output-on-failure
 .\build\plugin_probe.exe .\bin\CCSwitchUsageBalance.dll
 ```
 
-第一条使用合成数据及仅监听本机的 HTTP 服务测试，不读取真实密钥。第二条是显式的本机联调：实际加载 DLL、读取当前供应商，并查询其余额接口，仅打印名称和余额。
+第一条运行 `balance_core`、`balance_settings`、`balance_options`、`balance_http` 四项测试，使用合成数据及仅监听本机的 HTTP 服务，覆盖余额解析、配置持久化、显示格式和原生对话框交互，不读取真实密钥。第二条是显式的本机联调：实际加载 DLL、读取当前供应商，并查询其余额接口，仅打印名称和余额。
 
 ## 许可证
 
