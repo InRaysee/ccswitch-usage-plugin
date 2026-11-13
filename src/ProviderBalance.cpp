@@ -129,30 +129,6 @@ void ForceRefresh(const std::string& dbPath) {
 }
 Snapshot GetSnapshot() { auto& state = Data(); std::lock_guard<std::mutex> lock(state.mutex); return state.snapshot; }
 Config GetDisplayConfig() { auto& state = Data(); std::lock_guard<std::mutex> lock(state.mutex); return state.config; }
-std::wstring Tooltip() {
-    auto snapshot = GetSnapshot();
-    auto c = GetDisplayConfig();
-    Config full = c; full.showLabels = true;
-    std::wstring text = L"cc-switch \u4f9b\u5e94\u5546\u4f59\u989d\n" + AppName(c.app) + L" / " +
-        (snapshot.name.empty() ? L"--" : Utf8(snapshot.name));
-    if (c.tooltipDetails) {
-        for (auto field : {Field::Remaining,Field::Used,Field::Total,Field::Percent,Field::Plan})
-            text += L"\n" + FormatField(field,snapshot,full);
-    } else for (const auto& line : DisplayLines(snapshot,c)) text += L"\n" + line;
-    if (c.tooltipTime && snapshot.updatedAt) {
-        ULARGE_INTEGER t{}; t.QuadPart = (snapshot.updatedAt+11644473600ULL)*10000000ULL;
-        FILETIME utc{t.LowPart,t.HighPart}, local{}; SYSTEMTIME st{};
-        FileTimeToLocalFileTime(&utc,&local); FileTimeToSystemTime(&local,&st);
-        wchar_t time[80];
-        swprintf(time,80,L"\n\u66f4\u65b0: %04u-%02u-%02u %02u:%02u:%02u",st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond);
-        text += time;
-    }
-    if (c.tooltipErrors && !snapshot.error.empty()) {
-        text += L"\n\u72b6\u6001: " + snapshot.error;
-        if (snapshot.hasValue) text += L"\n* \u4fdd\u7559\u4e0a\u6b21\u6210\u529f\u6570\u636e";
-    }
-    if (IsWarning(snapshot,c)) text += L"\n\u63d0\u9192: \u4f59\u989d\u5df2\u8fbe\u5230\u8bbe\u5b9a\u7684\u4f4e\u4f59\u989d\u9608\u503c";
-    return text;
-}
+std::wstring Tooltip() { return FormatTooltip(GetSnapshot(),GetDisplayConfig()); }
 IPluginItem* Item() { static BalanceItem item; return &item; }
 } // namespace balance

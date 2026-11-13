@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 int main(int argc,char** argv) {
-    if(argc!=2 && argc!=3) { std::cerr << "Usage: plugin_probe <dll>\n"; return 1; }
+    if(argc!=2 && argc!=3) { std::cerr << "Usage: plugin_probe <dll> [--options|--tooltip]\n"; return 1; }
     HMODULE dll=LoadLibraryA(argv[1]);
     if(!dll) { std::cerr << "LoadLibrary failed: " << GetLastError() << '\n'; return 1; }
     auto get=(ITMPlugin*(*)())GetProcAddress(dll,"TMPluginGetInstance");
@@ -31,5 +31,12 @@ int main(int argc,char** argv) {
     int n=WideCharToMultiByte(CP_UTF8,0,text.c_str(),-1,nullptr,0,nullptr,nullptr);
     std::string utf8(n,0);WideCharToMultiByte(CP_UTF8,0,text.c_str(),-1,utf8.data(),n,nullptr,nullptr);
     std::cout << "DLL loaded; balance item: " << utf8.c_str() << "; measured width=" << width << '\n';
+    if (argc == 3 && std::string(argv[2]) == "--tooltip") {
+        const auto* tooltip = plugin->GetTooltipInfo();
+        int size = WideCharToMultiByte(CP_UTF8,0,tooltip,-1,nullptr,0,nullptr,nullptr);
+        std::string value(size,0);
+        WideCharToMultiByte(CP_UTF8,0,tooltip,-1,value.data(),size,nullptr,nullptr);
+        std::cout << value.c_str() << '\n';
+    }
     return text.find(L'$')!=std::wstring::npos ? 0 : 4;
 }

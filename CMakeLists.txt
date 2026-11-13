@@ -11,7 +11,7 @@ add_library(quickjs STATIC third_party/quickjs/quickjs.c third_party/quickjs/dto
     third_party/quickjs/libregexp.c third_party/quickjs/libunicode.c)
 target_include_directories(quickjs PUBLIC third_party/quickjs)
 target_compile_definitions(quickjs PRIVATE _GNU_SOURCE QUICKJS_NG_BUILD)
-add_library(balance_core STATIC src/BalanceCore.cpp src/BalanceDisplay.cpp src/BalanceConfig.cpp)
+add_library(balance_core STATIC src/BalanceCore.cpp src/BalanceDisplay.cpp src/BalanceConfig.cpp src/BalanceTooltip.cpp)
 target_link_libraries(balance_core PUBLIC sqlite quickjs winhttp gdi32)
 target_include_directories(balance_core PUBLIC src)
 add_library(CCSwitchUsageBalance SHARED src/CCSwitchUsage.cpp src/ProviderBalance.cpp src/OptionsDialog.cpp src/Options.rc)

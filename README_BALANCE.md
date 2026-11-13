@@ -1,4 +1,4 @@
-# cc-switch 供应商余额版 TrafficMonitor 插件（2.1-balance）
+# cc-switch 供应商余额版 TrafficMonitor 插件（2.1.1-balance）
 
 基于 Blackn-L/ccswitch-usage-plugin（上游提交 7770bf69cb2ffdbf751fa6036cd64ee46c5be255）修改。余额功能分支为 `codex/provider-balance`。
 
@@ -12,6 +12,31 @@
 4. 首次查询通常需要几秒。任务栏上方显示供应商名，下方显示如 `$123.45` 的余额；悬停显示完整名称、套餐、最后成功更新时间和错误。
 
 已验证 Windows x64 构建，适合 x64 TrafficMonitor 1.86 或更高版本。
+
+## 悬停排版（2.1.1）
+
+当前供应商余额置顶，本机全部应用/供应商的用量汇总放在独立段落。以下为示例数据：
+
+```text
+[供应商余额]
+Codex / 示例供应商
+余额: $75.00
+已用 / 总额: $25.00 / $100.00
+剩余比例: 75.00%
+套餐: Plan A
+上次成功: 2026-11-13 10:00:00
+
+[本机用量: 所有应用 / 供应商]
+今日: 花费 $1.20 | Token 1.5M
+近 7 天: 花费 $5.60 | Token 7.0M
+近 30 天: 花费 $20.00 | Token 25.0M
+```
+
+- 余额详情跳过缺失的已用、总额、比例和套餐；实际零值仍显示。任务栏选中了缺失字段时仍显示 `--`。
+- 悬停始终使用完整供应商名称、字段名与数值单位，不受任务栏别名或隐藏单位设置影响。
+- 在“悬停信息与提醒”中关闭“本机全部花费 / Token 统计”可隐藏第二组；关闭“余额详情”后只显示供应商和余额，以及仍启用的时间、错误与提醒。
+- 查询失败时，余额后只显示一次“上次成功值”，不在各字段重复追加星号。关闭“查询错误详情”会隐藏错误原文，仍保留旧值标记；任务栏的 `*` 标记不变。
+- 供应商名称、套餐和错误中的换行会合并为空格，避免打乱提示排版。
 
 ## 数据来源与支持范围
 
@@ -71,7 +96,7 @@ tooltip_errors=1
 - `line1` / `line2`：`none`、`provider`、`app_provider`、`remaining`、`used`、`total`、`percent`、`plan`、`used_total`、`balance_percent`。至少一行需显示内容。
 - `decimals`：0 到 6；`alignment`：0 左对齐、1 居中、2 右对齐；`display_name`：可选供应商显示别名。
 - `show_unit`、`show_labels`：是否显示单位或字段名；`warn_enabled` / `warn_below`：低余额变色开关和阈值。
-- `tooltip_usage`、`tooltip_details`、`tooltip_time`、`tooltip_errors`：分别控制悬停信息的内容，1 启用、0 关闭。
+- `tooltip_usage`、`tooltip_details`、`tooltip_time`、`tooltip_errors`：分别控制全部用量汇总、有效余额详情、成功时间、错误详情，1 启用、0 关闭；供应商名称和余额始终保留。
 
 已用或总额仅在接口返回数值，或可由余额和另一数值计算时提供；缺失字段显示 `--`。总额大于 0 时才计算剩余百分比。不把多套餐、不同货币余额相加。
 
@@ -81,7 +106,7 @@ tooltip_errors=1
 
 | 问题 | 处理方式 |
 | --- | --- |
-| “选项”仍打开 INI，或看不到新设置窗口 | 确认替换的是 `CCSwitchUsageBalance.dll`，完全退出 TrafficMonitor 后再重开；插件版本应为 `2.1-balance` |
+| “选项”仍打开 INI，或看不到新设置窗口 | 确认替换的是 `CCSwitchUsageBalance.dll`，完全退出 TrafficMonitor 后再重开；插件版本应为 `2.1.1-balance` |
 | 新增供应商未出现在列表 | 点击“重新读取列表”，并检查所选应用类型与 cc-switch 数据目录 |
 | 提示 `Enable usage query` 或无兼容脚本 | 在 cc-switch 中为该供应商启用、测试兼容 `request` / `extractor` 查询；官方订阅内置模板不适用 |
 | `HTTP 401/403` | 检查供应商查询凭据及接口权限 |

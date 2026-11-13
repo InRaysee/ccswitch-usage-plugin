@@ -2,7 +2,7 @@
 
 # CCSwitch Usage Balance for TrafficMonitor
 
-Display cc-switch provider balances and usage on the Windows taskbar. This is a fork of [Blackn-L/ccswitch-usage-plugin](https://github.com/Blackn-L/ccswitch-usage-plugin); the current extension version is **2.1-balance**.
+Display cc-switch provider balances and usage on the Windows taskbar. This is a fork of [Blackn-L/ccswitch-usage-plugin](https://github.com/Blackn-L/ccswitch-usage-plugin); the current extension version is **2.1.1-balance**.
 
 By default, the first line shows the provider name and the second line shows its remaining balance, following the active **Codex** provider in cc-switch. The settings dialog can select another app, pin a provider, and customize the displayed fields. The dialog labels are in Chinese.
 
@@ -60,6 +60,10 @@ Open **Plugin Manager > cc-switch 用量与余额 > Options**.
 The preview uses current data when available, otherwise clearly marked example data. **Apply** saves changes, **OK** saves and closes, and **Cancel** discards unapplied edits. **Restore defaults** changes the draft until Apply/OK.
 
 These choices affect this plugin only; they do not switch the active cc-switch provider or modify its database. The original cost/token statistics keep their upstream aggregation scope and are not filtered by the balance provider selection.
+
+Tooltips put the selected provider balance first and all-app/all-provider local usage in a separate section. Details omit unavailable fields and combine used/total on one line. Costs and tokens have explicit labels. Tooltips always show the actual provider name and units, independently of taskbar aliases and formatting; cached data has one clear last-success marker.
+
+For a compact tooltip, disable **本机全部花费 / Token 统计** (all local cost/token statistics) on the tooltips tab. Disabling **余额详情** (balance details) keeps only the provider, balance, and any enabled time/error information.
 
 See [README_BALANCE.md](README_BALANCE.md) for full configuration keys, data sources, troubleshooting, and test details (Chinese).
 

@@ -58,7 +58,7 @@ static long long RealTokens(const UsageData& d) {
 static UsageData g_today, g_week, g_month;
 static std::wstring g_line1 = L"$0.00";   // 第一行: 消耗金额
 static std::wstring g_line2 = L"0M"; // 第二行: 消耗 tokens
-static std::wstring g_tooltipText = L"cc-switch \u7528\u91cf";
+static std::wstring g_tooltipText = L"[\u672c\u673a\u7528\u91cf: \u6240\u6709\u5e94\u7528 / \u4f9b\u5e94\u5546]";
 static ULONGLONG g_lastQueryTick = 0;
 static bool g_hasData = false;             // 是否成功读到过数据
 
@@ -332,7 +332,7 @@ static void BuildDisplay(const std::wstring& status) {
     FormatTok(RealTokens(g_month), t3, 32);
     wchar_t tt[768] = {};
     int n = swprintf(tt, 768,
-        L"cc-switch \u4f7f\u7528\u7edf\u8ba1\n\u4eca\u65e5: $%.2f \u6d88\u8017\uff1a%ls\n\u8fd17\u5929: $%.2f \u6d88\u8017\uff1a%ls\n\u8fd130\u5929: $%.2f \u6d88\u8017\uff1a%ls",
+        L"[\u672c\u673a\u7528\u91cf: \u6240\u6709\u5e94\u7528 / \u4f9b\u5e94\u5546]\n\u4eca\u65e5: \u82b1\u8d39 $%.2f | Token %ls\n\u8fd1 7 \u5929: \u82b1\u8d39 $%.2f | Token %ls\n\u8fd1 30 \u5929: \u82b1\u8d39 $%.2f | Token %ls",
         g_today.cost, t1,
         g_week.cost, t2,
         g_month.cost, t3);
@@ -348,7 +348,7 @@ static void SetFailure(const std::wstring& msg) {
     } else {
         g_line1 = L"--";
         g_line2 = L"--";
-        g_tooltipText = L"cc-switch \u7528\u91cf\n\u72b6\u6001: " + msg;
+        g_tooltipText = L"[\u672c\u673a\u7528\u91cf: \u6240\u6709\u5e94\u7528 / \u4f9b\u5e94\u5546]\n\u72b6\u6001: " + msg;
     }
 }
 
@@ -395,10 +395,10 @@ static void RefreshData(bool force) {
     g_month = month;
     g_hasData = true;
 
-    // 长期没有记录大概率是读到了另一个空库, 把路径带出来方便排查
+    // Empty usage history is informational; keep the normal tooltip concise.
     std::wstring status;
     if (month.req == 0)
-        status = L"\u8fd130\u5929\u65e0\u8bb0\u5f55: " + loc.wide;
+        status = L"\u8fd1 30 \u5929\u65e0\u4ee3\u7406\u7528\u91cf\u8bb0\u5f55";
     BuildDisplay(status);
 }
 
@@ -496,15 +496,17 @@ public:
         case TMI_NAME: return L"cc-switch \u7528\u91cf\u4e0e\u4f59\u989d";
         case TMI_DESCRIPTION: return L"CC\u4f59\u989d: \u4f9b\u5e94\u5546\u540d\u79f0 / \u5269\u4f59\u4f59\u989d. CC\u7528\u91cf: \u91d1\u989d / Tokens.";
         case TMI_AUTHOR: return L"Blackn-L; local balance extension";
-        case TMI_VERSION: return L"2.1-balance";
+        case TMI_VERSION: return L"2.1.1-balance";
         case TMI_URL: return L"https://github.com/Blackn-L/ccswitch-usage-plugin";
         default: return L"";
         }
     }
     virtual const wchar_t* GetTooltipInfo() {
         RefreshData(false); balance::Refresh(ResolveDbPath().utf8);
-        static std::wstring combined; combined = balance::GetDisplayConfig().tooltipUsage ? g_tooltipText + L"\n\n" : L"";
-        combined += balance::Tooltip(); return combined.c_str();
+        static std::wstring combined;
+        combined = balance::Tooltip();
+        if (balance::GetDisplayConfig().tooltipUsage) combined += L"\n\n" + g_tooltipText;
+        return combined.c_str();
     }
 
 private:

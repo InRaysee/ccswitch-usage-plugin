@@ -68,6 +68,7 @@ void DrawSnapshot(void* dc, int x, int y, int width, int height, bool dark,
 void Refresh(const std::string& dbPath);
 void ForceRefresh(const std::string& dbPath);
 Snapshot GetSnapshot();
+std::wstring FormatTooltip(const Snapshot& snapshot, const Config& config);
 std::wstring Tooltip();
 IPluginItem* Item();
 ITMPlugin::OptionReturn ShowOptions(void* parent, const std::string& dbPath);

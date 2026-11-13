@@ -2,7 +2,7 @@
 
 # CCSwitch Usage Balance · TrafficMonitor 供应商余额版
 
-在 Windows 任务栏显示 cc-switch 供应商的剩余余额和用量。基于 [Blackn-L/ccswitch-usage-plugin](https://github.com/Blackn-L/ccswitch-usage-plugin) 的 fork，当前增强版为 **2.1-balance**。
+在 Windows 任务栏显示 cc-switch 供应商的剩余余额和用量。基于 [Blackn-L/ccswitch-usage-plugin](https://github.com/Blackn-L/ccswitch-usage-plugin) 的 fork，当前增强版为 **2.1.1-balance**。
 
 默认第一行显示供应商名称，第二行显示余额，跟随 cc-switch 当前启用的 **Codex** 供应商。可在设置窗口切换应用、固定供应商并自定义显示内容。
 
@@ -60,6 +60,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\script\build-balance.ps1
 底部提供预览，切换尚未查询的监控对象时使用标明的示例数据。**应用**保存并生效，**确定**保存并关闭，**取消**放弃未应用的修改。**恢复默认**只修改窗口草稿，保存后生效。
 
 设置仅改变本插件的监控对象，不会切换 cc-switch 的供应商或写入其数据库。原有花费/Token 统计保留上游的聚合口径，不随余额供应商筛选。
+
+悬停提示按“当前供应商余额 -> 本机全部用量”分组。余额详情只显示接口提供的字段，已用与总额合并一行；花费和 Token 分别标注。悬停始终显示完整供应商名称及数值单位，不受任务栏别名、隐藏单位等样式影响。查询失败时只标注一次“上次成功值”。
+
+想精简悬停内容，可在“悬停信息与提醒”中取消“本机全部花费 / Token 统计”；再取消“余额详情”后，只保留供应商、余额，以及仍勾选的时间/错误说明。
 
 完整配置字段、数据来源、故障排查与测试说明见 [README_BALANCE.md](README_BALANCE.md)。
 
